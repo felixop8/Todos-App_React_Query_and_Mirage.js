@@ -26,7 +26,8 @@ export function makeServer({ environment = "test" } = {}) {
               completed: false,
             }],
           };
-  
+          
+        // Fetch all todos.
         this.get("/todos", (schema, request) => {
             const {
                 queryParams: { pageOffset, pageSize },
@@ -47,6 +48,7 @@ export function makeServer({ environment = "test" } = {}) {
             return todos;
         });
 
+        // Create todo
         this.post("/todo", (schema, request) => {
             if (Math.random() > failureRate) {
               return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
@@ -60,6 +62,35 @@ export function makeServer({ environment = "test" } = {}) {
             fakeDatabase.todos.push(todo);
             return todo;
         });
+
+        // Edit/save post
+        this.patch("/todo/:id", (schema, request) => {
+
+          console.log('request after json', JSON.parse(request.requestBody))
+
+          const {params: {id}, requestBody } = request;
+
+          if (Math.random() > failureRate) {
+            return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
+          }
+
+          // Find the todo instance.
+          const todo = fakeDatabase.todos.find(t => t.id === id);
+
+          // Remove the id key from the request body todo, that way we can merge the rest of the keys with the
+          // todo object from the server without changing the id.
+          const requestBodyJSObject = JSON.parse(requestBody)
+          delete requestBodyJSObject.id
+
+          const newTodo = {
+            ...todo,
+            ...requestBodyJSObject
+          }
+
+          fakeDatabase.todos = fakeDatabase.todos.map((todo) => (todo.id === id ? newTodo : todo))
+
+          return newTodo;
+      });
       },
     })
   
