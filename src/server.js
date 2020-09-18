@@ -9,7 +9,7 @@ export function makeServer({ environment = "test" } = {}) {
       routes() {
         this.namespace = "api";
         this.timing = 2000
-        const failureRate = 0;
+        const failureRate = 0.5;
 
         const fakeDatabase = {
             todos: [{
@@ -45,6 +45,20 @@ export function makeServer({ environment = "test" } = {}) {
                 }
             }
             return todos;
+        });
+
+        this.post("/todo", (schema, request) => {
+            if (Math.random() > failureRate) {
+              return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
+            }
+
+            const todo = {
+              id: v4(),
+              ...JSON.parse(request.requestBody),
+              completed: false,
+            };
+            fakeDatabase.todos.push(todo);
+            return todo;
         });
       },
     })
