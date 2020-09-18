@@ -26,7 +26,7 @@ export function makeServer({ environment = "test" } = {}) {
               completed: false,
             }],
           };
-          
+
         // Fetch all todos.
         this.get("/todos", (schema, request) => {
             const {
@@ -50,9 +50,7 @@ export function makeServer({ environment = "test" } = {}) {
 
         // Create todo
         this.post("/todo", (schema, request) => {
-            if (Math.random() > failureRate) {
-              return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
-            }
+            if (Math.random() > failureRate) return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
 
             const todo = {
               id: v4(),
@@ -63,22 +61,15 @@ export function makeServer({ environment = "test" } = {}) {
             return todo;
         });
 
-        // Edit/save post
+        // Edit/save todo
         this.patch("/todo/:id", (schema, request) => {
-
-          console.log('request after json', JSON.parse(request.requestBody))
+          if (Math.random() > failureRate) return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
 
           const {params: {id}, requestBody } = request;
-
-          if (Math.random() > failureRate) {
-            return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
-          }
-
-          // Find the todo instance.
           const todo = fakeDatabase.todos.find(t => t.id === id);
+          if (!todo) new Response(400, { some: 'header' }, { errors: [ 'Not found.'] });
 
-          // Remove the id key from the request body todo, that way we can merge the rest of the keys with the
-          // todo object from the server without changing the id.
+
           const requestBodyJSObject = JSON.parse(requestBody)
           delete requestBodyJSObject.id
 
@@ -90,7 +81,19 @@ export function makeServer({ environment = "test" } = {}) {
           fakeDatabase.todos = fakeDatabase.todos.map((todo) => (todo.id === id ? newTodo : todo))
 
           return newTodo;
-      });
+        });
+
+        // Get single todo
+        this.get("/todo/:id", (schema, request) => {
+          const {params: {id} } = request;
+        
+          const todo = fakeDatabase.todos.find((todo) => todo.id === id)
+        
+          if (!todo) new Response(400, { some: 'header' }, { errors: [ 'Not found.'] });
+          console.log(todo);
+
+          return todo;
+        });
       },
     })
   
