@@ -13,7 +13,7 @@ export function makeServer({ environment = "test" } = {}) {
 
         const fakeDatabase = {
             todos: [{
-              id: v4(),
+              id: "1234",
               text: 'hey',
               completed: true,
             }, {
@@ -27,11 +27,10 @@ export function makeServer({ environment = "test" } = {}) {
             }],
           };
 
+          
         // Fetch all todos.
         this.get("/todos", (schema, request) => {
-            const {
-                queryParams: { pageOffset, pageSize },
-            } = request
+            const {queryParams: { pageOffset, pageSize }} = request
         
             const todos = fakeDatabase.todos;
         
@@ -48,25 +47,43 @@ export function makeServer({ environment = "test" } = {}) {
             return todos;
         });
 
+
         // Create todo
-        this.post("/todo", (schema, request) => {
-            if (Math.random() > failureRate) return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
+        this.post("/todos", (schema, request) => {
+            if (Math.random() > failureRate) return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
 
             const todo = {
               id: v4(),
               ...JSON.parse(request.requestBody),
               completed: false,
             };
+
             fakeDatabase.todos.push(todo);
+
             return todo;
         });
 
+
+        // Get single todo
+        this.get("/todos/:todoId", (schema, request) => {
+          const {params: {todoId}} = request;
+        
+          const todo = fakeDatabase.todos.find((todo) => todo.id === todoId)
+        
+          if (!todo) return new Response(400, { some: 'header' }, { errors: [ 'Not found.'] });
+
+          return todo;
+        });
+
+
         // Edit/save todo
-        this.patch("/todo/:id", (schema, request) => {
+        this.patch("/todos/:todoId", (schema, request) => {
           if (Math.random() > failureRate) return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
 
-          const {params: {id}, requestBody } = request;
-          const todo = fakeDatabase.todos.find(t => t.id === id);
+          const {params: {todoId}, requestBody } = request;
+
+          const todo = fakeDatabase.todos.find(todo => todo.id === todoId);
+
           if (!todo) new Response(400, { some: 'header' }, { errors: [ 'Not found.'] });
 
 
@@ -78,21 +95,25 @@ export function makeServer({ environment = "test" } = {}) {
             ...requestBodyJSObject
           }
 
-          fakeDatabase.todos = fakeDatabase.todos.map((todo) => (todo.id === id ? newTodo : todo))
+          fakeDatabase.todos = fakeDatabase.todos.map((todo) => (todo.id === todoId ? newTodo : todo))
 
           return newTodo;
         });
 
-        // Get single todo
-        this.get("/todo/:id", (schema, request) => {
-          const {params: {id} } = request;
-        
-          const todo = fakeDatabase.todos.find((todo) => todo.id === id)
-        
-          if (!todo) new Response(400, { some: 'header' }, { errors: [ 'Not found.'] });
-          console.log(todo);
 
-          return todo;
+        // Delete single todo
+        this.delete("/todos/:todoId", (schema, request) => {
+          const {params: {todoId} } = request;
+
+          if (Math.random() > failureRate) return new Response(400, { some: 'header' }, { errors: [ 'An unknown error occurred!'] });
+        
+          const todo = fakeDatabase.todos.find((todo) => todo.id === todoId)
+        
+          if (!todo) return new Response(400, { some: 'header' }, { errors: [ 'Not found.'] });
+
+          fakeDatabase.todos = fakeDatabase.todos.filter((todo) => todo.id !== todoId)
+
+          return 'Resource Deleted';
         });
       },
     })
