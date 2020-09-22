@@ -11,8 +11,11 @@ export function makeServer({ environment = "test" } = {}) {
 
       factories: {
         todo: Factory.extend({
-          text(i) {
-            return `Todo text ${i}` // Todo text 1, Todo text 2, ...
+          title(i) {
+            return `Todo title ${i}` // Todo title 1, Todo title 2, ...
+          },
+          description(i) {
+            return `Todo description ${i}`
           },
           completed: false,
         }),
@@ -30,7 +33,7 @@ export function makeServer({ environment = "test" } = {}) {
   
       routes() {
         this.namespace = "api";
-        // this.timing = 2000
+        this.timing = 2000
 
         // Get todos.
         this.get("/todos")
