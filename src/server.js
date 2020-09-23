@@ -35,39 +35,7 @@ export function makeServer({ environment = "test" } = {}) {
         this.namespace = "api";
         this.timing = 2000
 
-        // Get todos.
-        this.get("/todos")
-
-        // Create todo.
-        this.post("/todos");
-
-        // Get todo by id.
-        this.get("/todos/:id");
-
-        // Edit todo by id.
-        this.patch("/todos/:id")
-
-        // Delete todo by id.
-        this.del("/todos/:id")
-
-        // Get todos with pagination.
-        this.get("/todos/pagination", (schema, request) => {
-          const {queryParams: { pageOffset, pageSize }} = request
-
-          const todos = schema.db.todos;
-      
-          if (Number(pageSize)) {
-              const start = Number(pageSize) * Number(pageOffset)
-              const end = start + Number(pageSize)
-              const page = todos.slice(start, end)
-          
-              return {
-                  items: page,
-                  nextPage: todos.length > end ? Number(pageOffset) + 1 : undefined,
-              }
-          }
-          return todos
-      });
+        this.resource("todos")
       },
     })
   
