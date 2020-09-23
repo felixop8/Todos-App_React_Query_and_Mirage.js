@@ -2,7 +2,8 @@ import React from 'react'
 
 const defaultFormValues ={
     title: '',
-    description: ''
+    description: '',
+    completed: false
 }
 
 export default function TodoForm({initialValues = defaultFormValues, onSubmit, submitText}) {
@@ -16,7 +17,7 @@ export default function TodoForm({initialValues = defaultFormValues, onSubmit, s
       setValues(defaultFormValues)
       e.preventDefault()
 
-      onSubmit({data: {attributes: {...values, completed: false}, type: 'todos'}})
+      onSubmit(values)
     }
   
     React.useEffect(() => {
