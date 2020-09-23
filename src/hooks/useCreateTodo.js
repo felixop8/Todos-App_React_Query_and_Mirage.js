@@ -1,13 +1,49 @@
 import { useMutation, queryCache } from 'react-query'
-import axios from 'axios'
-
-
+import axiosConfig from '../api/axiosConfig'
+import { v4 as uuidv4 } from 'uuid';
 
 export default function useCreateTodos() {
+  const uuid = uuidv4();
+
     return useMutation(
-      (values) => axios.post('/api/todos', values).then((res) => res.data),
+      newTodo => axiosConfig.post('/api/todos', {
+        data: {
+          type: 'todos',
+          id: uuid,
+          attributes: {
+            ...newTodo
+          }
+        }
+      }).then((res) => res.data),
       {
-        onSuccess: () => queryCache.refetchQueries('todos'),
+        onMutate: newTodo => {
+          // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+          queryCache.cancelQueries('todos')
+          
+          // Snapshot the previous value
+          const previousTodos = queryCache.getQueryData('todos')
+  
+          // Optimistically update to the new value
+          queryCache.setQueryData('todos', oldTodos => ({
+            data: [
+              ...oldTodos.data,
+              {type: 'todos',
+              id: uuid,
+              attributes: {
+                ...newTodo
+              }}
+            ]
+          }))
+  
+          // Return the snapshotted value
+          return () => queryCache.setQueryData('todos', previousTodos)
+        },
+
+        // After success or failure, refetch the todos query
+        onSettled: (newTodo, error, variables, rollback) => {
+          if(error) rollback();
+          queryCache.invalidateQueries('todos')
+        },
       }
     )
   }
