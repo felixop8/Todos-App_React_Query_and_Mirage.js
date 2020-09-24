@@ -9,7 +9,7 @@ export default function useCreateTodos() {
       newTodo => axiosConfig.post('/api/todos', {
         data: {
           type: 'todos',
-          id: uuid,
+          id: newTodo.id,
           attributes: {
             ...newTodo
           }
@@ -20,7 +20,7 @@ export default function useCreateTodos() {
           
           // Todo: move this flag somewhere else.
           queryCache.setQueryData('creatingTodos', (old) => {
-            return [...old, uuid];
+            return [...old, newTodo.id];
           })
 
 
@@ -35,7 +35,7 @@ export default function useCreateTodos() {
             data: [
               ...oldTodos.data,
               {type: 'todos',
-              id: uuid,
+              id: newTodo.id,
               attributes: {
                 ...newTodo
               }}
@@ -49,11 +49,12 @@ export default function useCreateTodos() {
         // After success or failure, refetch the todos query
         onSettled: (newTodo, error, variables, rollback) => {
           if(error) rollback();
-          
+
           // Todo: move this flag somewhere else.
           queryCache.setQueryData('creatingTodos', (old) => {
-            return old.filter( id => id !== uuid);
+            return old.filter( id => id !== newTodo.data.id);
           })
+         
           queryCache.invalidateQueries('todos')
         },
       }

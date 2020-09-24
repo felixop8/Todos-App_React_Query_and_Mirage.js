@@ -1,4 +1,5 @@
 import React from 'react'
+import { v4 as uuidv4 } from 'uuid';
 
 const defaultFormValues ={
     title: '',
@@ -17,7 +18,7 @@ export default function TodoForm({initialValues = defaultFormValues, onSubmit, s
       setValues(defaultFormValues)
       e.preventDefault()
 
-      onSubmit(values)
+      onSubmit({...values, id: uuidv4()})
     }
   
     React.useEffect(() => {
