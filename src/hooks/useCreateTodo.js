@@ -17,6 +17,13 @@ export default function useCreateTodos() {
       }).then((res) => res.data),
       {
         onMutate: newTodo => {
+          
+          // Todo: move this flag somewhere else.
+          queryCache.setQueryData('creatingTodos', (old) => {
+            return [...old, uuid];
+          })
+
+
           // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
           queryCache.cancelQueries('todos')
           
@@ -42,6 +49,11 @@ export default function useCreateTodos() {
         // After success or failure, refetch the todos query
         onSettled: (newTodo, error, variables, rollback) => {
           if(error) rollback();
+          
+          // Todo: move this flag somewhere else.
+          queryCache.setQueryData('creatingTodos', (old) => {
+            return old.filter( id => id !== uuid);
+          })
           queryCache.invalidateQueries('todos')
         },
       }

@@ -1,14 +1,24 @@
-import React, {Fragment} from 'react'
+import React, {Fragment, useEffect} from 'react'
 import TodoForm from './TodoForm'
 import useTodos from '../hooks/useTodos'
 import useCreateTodos from '../hooks/useCreateTodo'
 import useSavePost from '../hooks/useSaveTodo'
+import { queryCache, setQueryData } from 'react-query'
 
 export default function Posts() {
     const { isLoading, isError, data: todos, error, isFetching } = useTodos();
-    const [createTodo, { isLoading: createTodoIsLoading, error: createTodoError, success: createTodoSuccess }] = useCreateTodos()
+    const [createTodo, { isLoading: createTodoIsLoading, error: createTodoError, success: createTodoSuccess, status }] = useCreateTodos()
     const [saveTodo, { isLoading: saveTodoIsLoading, error: saveTodoError, success: saveTodoSuccess }] = useSavePost();
+    
+    // Todo: move this flag somewhere else.
+    useEffect(() => {
+        queryCache.setQueryData('creatingTodos', (old) => {
+            return [];
+          })
+      }, []);
 
+    // Todo: move this flag somewhere else.
+    let creating = queryCache.getQueryData('creatingTodos');
 
 
     return (
@@ -34,7 +44,10 @@ export default function Posts() {
                                         type="checkbox" 
                                         name={`todo${todo.id}`} 
                                         checked={todo.attributes.completed} 
-                                        onChange={() => saveTodo({...todo.attributes, completed: !todo.attributes.completed, id: todo.id})} />
+                                        onChange={() => saveTodo({...todo.attributes, completed: !todo.attributes.completed, id: todo.id})}
+                                        // Todo: move this flag somewhere else.
+                                        disabled={creating.includes(todo.id)} 
+                                    />
                                     <label htmlFor={`todo${todo.id}`}>{todo.attributes.title}</label>
                                 </Fragment>
                             ))}
