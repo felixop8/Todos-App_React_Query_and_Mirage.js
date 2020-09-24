@@ -1,9 +1,14 @@
 import { Server, JSONAPISerializer,  Model, Factory } from "miragejs";
+import identityManager from './identityManager';
 
 
 export function makeServer({ environment = "test" } = {}) {
     let server = new Server({
       environment,
+      
+      identityManagers: {
+        application: identityManager,
+      },
 
       models: {
         todos: Model,
